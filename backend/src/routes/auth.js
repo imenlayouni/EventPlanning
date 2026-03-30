@@ -7,6 +7,8 @@ const isAuthenticated = require("../middleware/isAuthenticated");
 router.post("/register", upload.single("cinPhoto"), authController.registerRequest);
 
 router.post("/login",authController.login);
+router.get("/profile", isAuthenticated, authController.getProfile);
 router.put('/profile', isAuthenticated, authController.updateProfile);
+router.put('/unavailable-dates', isAuthenticated, authController.updateUnavailableDates);
 
 module.exports = router;

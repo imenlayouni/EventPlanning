@@ -13,12 +13,16 @@ module.exports = async (req, res, next) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
+      console.error(`User not found with ID: ${decoded.id}`);
       return res.status(401).json({ message: "User not found" });
     }
 
-    req.user = user; 
+    // Ensure user has both _id and id properties for compatibility
+    req.user = user;
+    req.user.id = user._id;
     next();
   } catch (err) {
+    console.error("Auth middleware error:", err.message);
     res.status(401).json({ message: "Invalid token" });
   }
 };

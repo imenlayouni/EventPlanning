@@ -7,7 +7,7 @@ exports.updateProfile = async (req, res) => {
     try {
         const { category, description, phone, priceRange, availability, location } = req.body;
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: "User not found" });
         if (location) user.location = location;
         if (category) user.serviceProfile.category = category;
@@ -29,7 +29,7 @@ exports.updateProfile = async (req, res) => {
 //get dashboard stats
 exports.getDashboardStats = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id;
 
         const totalEvents = await Service.countDocuments({ providerId: userId, status: "COMPLETED" });
         const pendingRequests = await ServiceRequest.countDocuments({ provider: userId, status: "pending" });

@@ -90,11 +90,16 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.json({
-      token,
-      role: user.role,
-      name: `${user.firstName} ${user.lastName}`,
-      id: user._id
-    });
+  token,
+  role: user.role,
+  name: `${user.firstName} ${user.lastName}`,
+  id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  unavailableDates: user.unavailableDates || [],
+  location: user.location || ''
+});
 
   } catch (error) {
     console.error("Login error:", error);
@@ -105,7 +110,7 @@ exports.login = async (req, res) => {
 // update user profile (participant) - supports changing password
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const { firstName, lastName, location, email, assets, password } = req.body;
@@ -131,5 +136,37 @@ exports.updateProfile = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to update profile" });
+  }
+};
+// get user profile
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-passwordHash');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      location: user.location,
+      unavailableDates: user.unavailableDates || [],
+      assets: user.assets
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch profile' });
+  }
+};
+exports.updateUnavailableDates = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    user.unavailableDates = req.body.unavailableDates;
+    await user.save();
+    res.json({ unavailableDates: user.unavailableDates });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update availability' });
   }
 };

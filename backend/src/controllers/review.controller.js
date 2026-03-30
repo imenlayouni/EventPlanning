@@ -5,7 +5,7 @@ const Photo = require("../models/photo");
 exports.createReview = async (req, res) => {
   try {
     const { rating, comment } = req.body;
-    const userId = req.user && req.user.id;
+    const userId = req.user && (req.user._id || req.user.id);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     const review = await Review.create({ rating: Number(rating) || 0, comment, user: userId });
@@ -27,8 +27,20 @@ exports.createReview = async (req, res) => {
 // list recent reviews
 exports.listReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ isDeleted: false }).populate('user', 'firstName lastName').sort({ createdAt: -1 }).lean();
-    res.json(reviews);
+    const reviews = await Review.find({ isDeleted: false }).populate('user', 'firstName lastName').sort({ createdAt: -1 });
+    
+    // populate photos for each review
+    const reviewsWithPhotos = await Promise.all(
+      reviews.map(async (review) => {
+        const photo = await Photo.findOne({ type: 'REVIEW', review: review._id });
+        return {
+          ...review.toObject(),
+          photo: photo ? { url: photo.url, _id: photo._id } : null
+        };
+      })
+    );
+    
+    res.json(reviewsWithPhotos);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to fetch reviews' });

@@ -6,7 +6,7 @@ exports.createEvent = async (req, res) => {
         const { name } = req.body;
         const event = await Event.create({
             name,
-            organizer: req.user.id,
+            organizer: req.user._id,
             services: []
         });
         res.status(201).json(event);
@@ -19,7 +19,7 @@ exports.createEvent = async (req, res) => {
 // Get all events for the current user
 exports.getMyEvents = async (req, res) => {
     try {
-        const events = await Event.find({ organizer: req.user.id }).populate({
+        const events = await Event.find({ organizer: req.user._id }).populate({
             path: 'services',
             populate: { path: 'organizer', select: 'firstName lastName email' }
         });
@@ -36,7 +36,7 @@ exports.addServiceToEvent = async (req, res) => {
         const { eventId, serviceId } = req.body;
         const event = await Event.findById(eventId);
         if (!event) return res.status(404).json({ message: "Event not found" });
-        if (event.organizer.toString() !== req.user.id) return res.status(403).json({ message: "Not authorized" });
+        if (event.organizer.toString() !== req.user._id.toString()) return res.status(403).json({ message: "Not authorized" });
 
         event.services.push(serviceId);
         await event.save();
@@ -58,7 +58,7 @@ exports.removeServiceFromEvent = async (req, res) => {
         const { eventId, serviceId } = req.body;
         const event = await Event.findById(eventId);
         if (!event) return res.status(404).json({ message: "Event not found" });
-        if (event.organizer.toString() !== req.user.id) return res.status(403).json({ message: "Not authorized" });
+        if (event.organizer.toString() !== req.user._id.toString()) return res.status(403).json({ message: "Not authorized" });
 
         event.services = event.services.filter(id => id.toString() !== serviceId);
         await event.save();

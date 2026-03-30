@@ -20,7 +20,7 @@ exports.createRequest = async (req, res) => {
         }
 
         const request = await ServiceRequest.create({
-            user: req.user.id,
+            user: req.user._id,
             provider,
             listing,
             requestType,
@@ -45,7 +45,7 @@ exports.createRequest = async (req, res) => {
 // User gets their own sent requests
 exports.getMyRequests = async (req, res) => {
     try {
-        const requests = await ServiceRequest.find({ user: req.user.id })
+        const requests = await ServiceRequest.find({ user: req.user._id })
             .populate("provider", "firstName lastName email")
             .populate("listing", "title category price images")
             .sort({ createdAt: -1 });
@@ -60,7 +60,7 @@ exports.getMyRequests = async (req, res) => {
 // Provider gets incoming requests
 exports.getProviderRequests = async (req, res) => {
     try {
-        const requests = await ServiceRequest.find({ provider: req.user.id })
+        const requests = await ServiceRequest.find({ provider: req.user._id })
             .populate("user", "firstName lastName email")
             .populate("listing", "title category price images")
             .sort({ createdAt: -1 });
@@ -80,7 +80,7 @@ exports.updateRequestStatus = async (req, res) => {
         const request = await ServiceRequest.findById(req.params.id);
         if (!request) return res.status(404).json({ message: "Request not found" });
 
-        if (request.provider.toString() !== req.user.id.toString()) {
+        if (request.provider.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Not authorized" });
         }
 

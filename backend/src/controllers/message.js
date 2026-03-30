@@ -5,12 +5,12 @@ exports.sendMessage = async (req, res) => {
     try {
         const { recipient, event, listing, content } = req.body;
 
-        console.log("[sendMessage] req.user.id:", req.user.id, "typeof:", typeof req.user.id);
+        console.log("[sendMessage] req.user._id:", req.user._id, "typeof:", typeof req.user._id);
         console.log("[sendMessage] recipient:", recipient, "typeof:", typeof recipient);
         console.log("[sendMessage] content:", content);
 
         const message = await Message.create({
-            sender: req.user.id,
+            sender: req.user._id,
             recipient,
             event,
             listing,
@@ -34,7 +34,7 @@ exports.sendMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user._id;
         const { otherUser } = req.query;
 
         console.log("[getMessages] userId:", userId, "typeof:", typeof userId);
@@ -76,7 +76,7 @@ exports.getMessages = async (req, res) => {
 exports.markAsRead = async (req, res) => {
     try {
         await Message.updateMany(
-            { recipient: req.user.id, sender: req.body.sender, read: false },
+            { recipient: req.user._id, sender: req.body.sender, read: false },
             { read: true }
         );
         res.json({ message: "Messages marked as read" });

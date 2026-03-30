@@ -11,7 +11,7 @@ exports.createListing = async (req, res) => {
         }
 
         const listing = await Listing.create({
-            organizer: req.user.id,
+            organizer: req.user._id,
             title,
             description,
             location,
@@ -36,7 +36,7 @@ exports.updateListing = async (req, res) => {
         const listing = await Listing.findById(req.params.id);
 
         if (!listing) return res.status(404).json({ message: "Listing not found" });
-        if (listing.organizer.toString() !== req.user.id) return res.status(403).json({ message: "Not authorized" });
+        if (listing.organizer.toString() !== req.user._id.toString()) return res.status(403).json({ message: "Not authorized" });
 
         const updateData = { ...req.body };
 
@@ -59,7 +59,7 @@ exports.deleteListing = async (req, res) => {
         const listing = await Listing.findById(req.params.id);
 
         if (!listing) return res.status(404).json({ message: "Listing not found" });
-        if (listing.organizer.toString() !== req.user.id) return res.status(403).json({ message: "Not authorized" });
+        if (listing.organizer.toString() !== req.user._id.toString()) return res.status(403).json({ message: "Not authorized" });
 
         await listing.deleteOne();
         res.json({ message: "Listing deleted" });

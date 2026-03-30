@@ -53,13 +53,13 @@ const userSchema = new mongoose.Schema(
         },
         serviceProfile: {
             category: { type: String, trim: true },
-            description: { type: String, trim: true },
             phone: { type: String, trim: true },
             priceRange: {
                 min: { type: Number, default: 0 },
                 max: { type: Number, default: 0 }
             },
             availability: [{ type: String }],
+            unavailableDates: [{ type: String }],
             averageRating: { type: Number, default: 0 },
             reviewCount: { type: Number, default: 0 }
         }
