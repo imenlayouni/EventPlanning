@@ -1,16 +1,20 @@
-const Event = require("../models/event");
+const nodemailer = require("nodemailer");
 
-async function recommendEvents(userId) {
-  // simple version: recommend latest or similar events
-  return Event.find().limit(5);
-}
+module.exports = async (to, subject, text) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp-relay.brevo.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS
+    }
+  });
 
-async function recommendLocations(userId) {
-  // placeholder logic
-  return [];
-}
-
-module.exports = {
-  recommendEvents,
-  recommendLocations
+  await transporter.sendMail({
+    from: `"Axia Event Planner" <${process.env.MAIL_USER}>`,
+    to,
+    subject,
+    text
+  });
 };

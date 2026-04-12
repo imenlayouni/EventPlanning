@@ -12,8 +12,8 @@ router.get("/:id", getListingById);
 const upload = require("../middleware/upload");
 
 //protected routes(Organizer)
-router.post("/", requireAuth, requireRole("organisateur"), upload.array("images", 5), createListing);
-router.put("/:id", requireAuth, requireRole("organisateur"), upload.array("images", 5), updateListing);
-router.delete("/:id", requireAuth, requireRole("organisateur"), deleteListing);
+router.post("/", requireAuth, requireRole("serviceProvider"), upload.array("images", 5), createListing);
+router.put("/:id", requireAuth, requireRole("serviceProvider"), upload.array("images", 5), updateListing);
+router.delete("/:id", requireAuth, requireRole("serviceProvider"), deleteListing);
 
 module.exports = router;

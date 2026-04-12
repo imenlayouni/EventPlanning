@@ -4,6 +4,14 @@ const Listing = require("../models/Listing");
 exports.createListing = async (req, res) => {
     try {
         const { title, description, location, price, category, assets } = req.body;
+        let fields = [];
+        if (req.body.fields) {
+            try {
+                fields = JSON.parse(req.body.fields);
+            } catch (e) {
+                fields = [];
+            }
+        }
 
         let imageUrls = [];
         if (req.files && req.files.length > 0) {
@@ -18,8 +26,10 @@ exports.createListing = async (req, res) => {
             images: imageUrls,
             price,
             category,
-            assets
+            assets,
+            fields
         });
+        
 
         const populatedListing = await Listing.findById(listing._id).populate("organizer", "firstName lastName email serviceProfile");
 

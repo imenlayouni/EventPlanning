@@ -27,6 +27,10 @@ const photoRoutes = require("./routes/photo");
 const reviewRoutes = require("./routes/review");
 const contactRoutes = require("./routes/contact");
 const reservationRoutes = require("./routes/reservation");
+const contractRoutes = require("./routes/contract");
+const paymentRoutes = require("./routes/payment");
+const recommendationRoutes = require("./routes/recommendation");
+const notificationRoutes = require("./routes/notification");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -38,6 +42,13 @@ app.use("/api/photos", photoRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/contracts", contractRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/notifications", notificationRoutes);
+
+
+
 
 
 app.get("/", (req, res) => {

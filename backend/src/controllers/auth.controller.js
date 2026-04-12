@@ -12,7 +12,7 @@ exports.registerRequest = async (req, res) => {
       return res.status(400).json({ message: "Please fill in all fields" });
     }
 
-    if (!["participant", "organisateur"].includes(role)) {
+    if (!["participant", "serviceProvider"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
@@ -88,7 +88,7 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-
+console.log("User unavailableDates from DB:", user.unavailableDates);
     res.json({
   token,
   role: user.role,
@@ -113,12 +113,13 @@ exports.updateProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const { firstName, lastName, location, email, assets, password } = req.body;
+    const { firstName, lastName, location, email, assets, password, phone } = req.body;
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (location) user.location = location;
     if (email) user.email = email;
     if (assets) user.assets = assets;
+    if (phone !== undefined) user.phone = phone;
     if (password) {
       user.passwordHash = await bcrypt.hash(password, 10);
     }
@@ -131,7 +132,8 @@ exports.updateProfile = async (req, res) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
-      location: user.location
+      location: user.location,
+      phone: user.phone
     });
   } catch (err) {
     console.error(err);
@@ -143,7 +145,6 @@ exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash');
     if (!user) return res.status(404).json({ message: 'User not found' });
-
     res.json({
       id: user._id,
       firstName: user.firstName,
@@ -151,6 +152,7 @@ exports.getProfile = async (req, res) => {
       email: user.email,
       role: user.role,
       location: user.location,
+      phone: user.phone,
       unavailableDates: user.unavailableDates || [],
       assets: user.assets
     });
@@ -169,4 +171,13 @@ exports.updateUnavailableDates = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Failed to update availability' });
   }
+};
+exports.getProviderAvailability = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('unavailableDates');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ unavailableDates: user.unavailableDates || [] });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error' });
+    }
 };

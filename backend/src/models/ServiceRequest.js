@@ -43,7 +43,18 @@ const serviceRequestSchema = new mongoose.Schema({
     finalPrice: {
         type: Number,
         default: null
+    },
+    contract: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Contract",
+    default: null
+},
+   formAnswers: [
+    {
+        label: { type: String },
+        value: { type: String }
     }
+]
 }, { timestamps: true });
 
 module.exports = mongoose.model("ServiceRequest", serviceRequestSchema);

@@ -13,6 +13,7 @@ module.exports = async (to, subject, text) => {
     from: `"Axia Event Planner" <${process.env.MAIL_USER}>`,
     to,
     subject,
-    text
+    text,
+    html: `<p>${text}</p>`
   });
 };

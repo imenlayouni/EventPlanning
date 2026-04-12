@@ -1,17 +1,15 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-const Service = require("../models/service");
 const Listing = require("../models/Listing");
 const ServiceRequest = require("../models/ServiceRequest");
 const sendMail = require("../services/mail");
+const notify = require("../services/notify");
 
-// Get pending listings and services for admin review
+// Get pending listings for admin review
 exports.getPendingRequests = async (req, res) => {
   try {
     const pendingListings = await Listing.find({ approved: false }).populate("organizer", "firstName lastName email");
-    const pendingServices = await Service.find({ status: "PENDING" }).populate("providerId", "firstName lastName email");
-
-    res.json({ listings: pendingListings, services: pendingServices });
+    res.json({ listings: pendingListings });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -144,10 +142,10 @@ exports.updateUserStatus = async (req, res) => {
 exports.getAnalytics = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
-    const totalEvents = await Service.countDocuments();
+    const totalListings = await Listing.countDocuments();
 
-    //events per month(last 6 months)
-    const eventsPerMonth = await Service.aggregate([
+    //listings per month(last 6 months)
+    const listingsPerMonth = await Listing.aggregate([
       {
         $group: {
           _id: { $month: "$createdAt" },
@@ -157,10 +155,10 @@ exports.getAnalytics = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
-    //top organizers
-    const topOrganizers = await Service.aggregate([
-      { $group: { _id: "$providerId", eventCount: { $sum: 1 } } },
-      { $sort: { eventCount: -1 } },
+    //top organizers by listing count
+    const topOrganizers = await Listing.aggregate([
+      { $group: { _id: "$organizer", listingCount: { $sum: 1 } } },
+      { $sort: { listingCount: -1 } },
       { $limit: 5 },
       {
         $lookup: {
@@ -174,12 +172,12 @@ exports.getAnalytics = async (req, res) => {
       {
         $project: {
           name: { $concat: ["$organizer.firstName", " ", "$organizer.lastName"] },
-          eventCount: 1
+          listingCount: 1
         }
       }
     ]);
 
-    res.json({ totalUsers, totalEvents, eventsPerMonth, topOrganizers });
+    res.json({ totalUsers, totalListings, listingsPerMonth, topOrganizers });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -206,12 +204,12 @@ exports.validateAccount = async (req, res) => {
   user.passwordHash = await bcrypt.hash(password, 10);
   user.status = "ACTIVE";
   await user.save();
-
-  await sendMail(
-    user.email,
-    "Account validated",
-    `Your password is: ${password}`
-  );
+  await notify(user._id, "Account Approved! ✅", "Your account has been approved. You can now login.", "account");
+  try {
+    await sendMail(user.email, "Account validated", `Your password is: ${password}`);
+  } catch (mailErr) {
+    console.error("Email send failed:", mailErr.message);
+  }
 
   res.json({ message: "Account validated and email sent" });
 };
@@ -230,6 +228,7 @@ exports.rejectAccount = async (req, res) => {
 
     user.status = "REJECTED";
     await user.save();
+    await notify(user._id, "Account Rejected", "Your account application has been rejected.", "account");
 
     await sendMail(
       user.email,
@@ -298,54 +297,3 @@ exports.rejectListing = async (req, res) => {
   }
 };
 
-// Approve a service (set status CONFIRMED)
-exports.approveService = async (req, res) => {
-  try {
-    const serviceId = req.params.id;
-    const service = await Service.findById(serviceId).populate("providerId", "email firstName lastName");
-    if (!service) return res.status(404).json({ message: "Service not found" });
-
-    if (service.status === "CONFIRMED") return res.status(400).json({ message: "Service already approved" });
-
-    service.status = "CONFIRMED";
-    await service.save();
-
-    if (service.providerId && service.providerId.email) {
-      await sendMail(
-        service.providerId.email,
-        "Your service was approved",
-        `Hello ${service.providerId.firstName || ''},\n\nYour service \"${service.title}\" has been approved and is now available.`
-      );
-    }
-
-    res.json({ message: "Service approved", service });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Reject a service (set status REJECTED)
-exports.rejectService = async (req, res) => {
-  try {
-    const serviceId = req.params.id;
-    const service = await Service.findById(serviceId).populate("providerId", "email firstName lastName");
-    if (!service) return res.status(404).json({ message: "Service not found" });
-
-    service.status = "REJECTED";
-    await service.save();
-
-    if (service.providerId && service.providerId.email) {
-      await sendMail(
-        service.providerId.email,
-        "Your service was rejected",
-        `Hello ${service.providerId.firstName || ''},\n\nYour service \"${service.title}\" was not approved.`
-      );
-    }
-
-    res.json({ message: "Service rejected", service });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};

@@ -24,3 +24,24 @@ exports.getPhotos = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch photos" });
   }
 };
+exports.uploadPhoto = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No photo uploaded" });
+
+    const { description, category } = req.body;
+    const host = req.protocol + '://' + req.get('host');
+    const url = `${host}/uploads/${req.file.filename}`;
+
+    const photo = await Photo.create({
+      url,
+      description: description || '',
+      type: "EVENT",
+      isDeleted: false
+    });
+
+    res.status(201).json(photo);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to upload photo" });
+  }
+};

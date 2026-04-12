@@ -1,5 +1,5 @@
 const express = require("express");
-const { validateAccount, getAllUsers, updateUserRole, updateUserStatus, getAnalytics, rejectAccount, approveListing, rejectListing, approveService, rejectService, getPendingRequests, getServiceRequests, updateServiceRequestStatus } = require("../controllers/admin");
+const { validateAccount, getAllUsers, updateUserRole, updateUserStatus, getAnalytics, rejectAccount, approveListing, rejectListing, getPendingRequests, getServiceRequests, updateServiceRequestStatus } = require("../controllers/admin");
 const requireAuth = require("../middleware/isAuthenticated");
 const requireRole = require("../middleware/role");
 
@@ -17,10 +17,6 @@ router.post("/reject/:id", rejectAccount);
 // Listing approval
 router.post("/listings/:id/approve", approveListing);
 router.post("/listings/:id/reject", rejectListing);
-
-// Service approval
-router.post("/services/:id/approve", approveService);
-router.post("/services/:id/reject", rejectService);
 
 // Pending requests listing
 router.get("/pending-requests", getPendingRequests);

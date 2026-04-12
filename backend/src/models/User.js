@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ["admin", "organisateur", "participant"],
+            enum: ["admin", "serviceProvider", "participant"],
             required: true
         },
 
@@ -47,12 +47,17 @@ const userSchema = new mongoose.Schema(
             type: String,
             trim: true
         },
+        phone: {
+            type: String,
+            trim: true
+        },
         assets: {
             type: String,
             trim: true
         },
         serviceProfile: {
             category: { type: String, trim: true },
+            description: { type: String, trim: true },
             phone: { type: String, trim: true },
             priceRange: {
                 min: { type: Number, default: 0 },
@@ -62,7 +67,8 @@ const userSchema = new mongoose.Schema(
             unavailableDates: [{ type: String }],
             averageRating: { type: Number, default: 0 },
             reviewCount: { type: Number, default: 0 }
-        }
+        },
+        unavailableDates: [{ type: String }]
     },
     {
         timestamps: true

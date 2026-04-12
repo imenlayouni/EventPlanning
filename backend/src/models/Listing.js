@@ -36,7 +36,7 @@ const listingSchema = new mongoose.Schema(
         },
         assets: {
             type: String,
-            trim: true
+            trim: true                                                                                            
         },
         available: {
             type: Boolean,
@@ -45,7 +45,15 @@ const listingSchema = new mongoose.Schema(
         approved: {
             type: Boolean,
             default: false
+        },
+        fields: [
+        {
+            label: { type: String, required: true },
+            type: { type: String, enum: ["text", "number", "dropdown", "checkbox", "multi-select"], required: true },
+            options: [{ type: String }],
+            required: { type: Boolean, default: false }
         }
+]
     },
     {
         timestamps: true

@@ -9,7 +9,7 @@ exports.registerRequest = async (req, res) => {
       return res.status(400).json({ message: "Please fill in all fields" });
     }
 
-    if (!["participant", "organisateur"].includes(role)) {
+    if (!["participant", "serviceProvider"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
