@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== GLOBAL STYLE ===== */
+
+body {
+  @apply bg-[#0b0b16] text-white;
+  font-family: 'Inter', sans-serif;
+}
+
+/* smooth animation */
+* {
+  transition: all 0.2s ease;
+}
+
+/* custom reusable classes */
+.section-title {
+  @apply text-3xl md:text-4xl font-bold mb-8;
+}
+
+.card {
+  @apply bg-[#141428] rounded-2xl p-5 hover:scale-[1.02];
+}
