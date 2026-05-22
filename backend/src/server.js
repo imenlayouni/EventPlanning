@@ -7,7 +7,7 @@ const cors = require("cors"); //allow front and back to communicate
 const app = express();
 
 app.use(
-  cors({ origin: "http://localhost:5000", credentials: true, })
+  cors({ origin: "*", credentials: false })
 );
 
 app.use(express.json());
@@ -56,6 +56,6 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT,'0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

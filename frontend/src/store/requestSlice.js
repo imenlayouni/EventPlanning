@@ -48,6 +48,24 @@ export const updateRequestStatus = createAsyncThunk("requests/updateStatus", asy
     }
 });
 
+export const sendProviderResponse = createAsyncThunk("requests/respond", async ({ id, providerNote }, { rejectWithValue }) => {
+    try {
+        const res = await axios.put(`${API_URL}/${id}/respond`, { providerNote }, config());
+        return res.data;
+    } catch (err) {
+        return rejectWithValue(err.response?.data?.message || "Failed to send response");
+    }
+});
+
+export const sendRequestMessage = createAsyncThunk("requests/sendMessage", async ({ id, text }, { rejectWithValue }) => {
+    try {
+        const res = await axios.post(`${API_URL}/${id}/message`, { text }, config());
+        return res.data;
+    } catch (err) {
+        return rejectWithValue(err.response?.data?.message || "Failed to send message");
+    }
+});
+
 // 👇 only one signContract
 export const signContract = createAsyncThunk("requests/signContract", async (contractId, { rejectWithValue }) => {
     try {
@@ -99,6 +117,17 @@ const requestSlice = createSlice({
             .addCase(updateRequestStatus.fulfilled, (state, action) => {
                 const idx = state.providerRequests.findIndex(r => r._id === action.payload._id);
                 if (idx !== -1) state.providerRequests[idx] = action.payload;
+            })
+            .addCase(sendProviderResponse.fulfilled, (state, action) => {
+                const idx = state.providerRequests.findIndex(r => r._id === action.payload._id);
+                if (idx !== -1) state.providerRequests[idx] = action.payload;
+            })
+            .addCase(sendRequestMessage.fulfilled, (state, action) => {
+                const id = action.payload._id;
+                const pi = state.providerRequests.findIndex(r => r._id === id);
+                if (pi !== -1) state.providerRequests[pi] = action.payload;
+                const mi = state.myRequests.findIndex(r => r._id === id);
+                if (mi !== -1) state.myRequests[mi] = action.payload;
             })
             // 👇 only one signContract case
             .addCase(signContract.fulfilled, (state, action) => {

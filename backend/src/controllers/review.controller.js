@@ -93,3 +93,32 @@ exports.getProviderReviews = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch reviews' });
   }
 };
+
+// Admin: get all reviews
+exports.adminListReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ isDeleted: false })
+      .populate('user', 'firstName lastName email')
+      .populate('provider', 'firstName lastName')
+      .populate('listing', 'title')
+      .sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch reviews' });
+  }
+};
+
+// Admin: delete (soft-delete) a review
+exports.adminDeleteReview = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) return res.status(404).json({ message: 'Review not found' });
+    review.isDeleted = true;
+    await review.save();
+    res.json({ message: 'Review deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to delete review' });
+  }
+};

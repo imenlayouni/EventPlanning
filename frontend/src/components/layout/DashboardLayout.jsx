@@ -6,18 +6,18 @@ export default function DashboardLayout({ subtitle, tabs, activeTab, onTabChange
     const navigate = useNavigate();
 
     return (
-        <div className="flex min-h-screen bg-[#0b0b16] text-white">
+        <div className="flex min-h-screen bg-[#F5F0FF] text-gray-900">
             {/* ── Sidebar ── */}
-            <aside className="w-72 bg-[#141428] border-r border-gray-800 hidden md:flex flex-col sticky top-0 h-screen">
+            <aside className="w-72 bg-[#1E0B3E] border-r border-[#3D1E7A] hidden md:flex flex-col sticky top-0 h-screen shadow-xl">
                 {/* Logo */}
                 <div className="p-8">
                     <h1
-                        className="text-3xl font-black text-[#7C3AED] uppercase tracking-tighter cursor-pointer"
+                        className="text-3xl font-black text-[#C4B5FD] uppercase tracking-tighter cursor-pointer hover:text-white transition-colors"
                         onClick={() => navigate('/feed')}
                     >
                         Axia Event Planner
                     </h1>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{subtitle}</p>
+                    <p className="text-[10px] text-[#6B4FA0] font-bold uppercase tracking-widest mt-1">{subtitle}</p>
                 </div>
 
                 {/* Nav tabs */}
@@ -28,8 +28,8 @@ export default function DashboardLayout({ subtitle, tabs, activeTab, onTabChange
                             onClick={() => onTabChange(tab.id)}
                             className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
                                 activeTab === tab.id
-                                    ? "bg-[#7C3AED] text-white shadow-xl shadow-[#7C3AED]/20 scale-[1.05]"
-                                    : "text-gray-400 hover:bg-gray-800/50 hover:text-white"
+                                    ? "bg-[#7C3AED] text-white shadow-xl shadow-[#7C3AED]/30 scale-[1.05]"
+                                    : "text-[#C4B5FD] hover:bg-[#7C3AED]/20 hover:text-white"
                             }`}
                         >
                             <tab.icon size={20} />
@@ -45,10 +45,10 @@ export default function DashboardLayout({ subtitle, tabs, activeTab, onTabChange
                     ))}
 
                     {/* Back to Feed */}
-                    <div className="pt-8 border-t border-gray-800 mt-8">
+                    <div className="pt-8 border-t border-[#3D1E7A] mt-8">
                         <button
                             onClick={() => navigate('/feed')}
-                            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-800/50 hover:text-white transition-all"
+                            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-[#C4B5FD] hover:bg-[#7C3AED]/20 hover:text-white transition-all"
                         >
                             <LayoutDashboard size={20} /> Back to Feed
                         </button>
@@ -56,10 +56,10 @@ export default function DashboardLayout({ subtitle, tabs, activeTab, onTabChange
                 </nav>
 
                 {/* Logout */}
-                <div className="p-8 border-t border-gray-800">
+                <div className="p-8 border-t border-[#3D1E7A]">
                     <button
                         onClick={onLogout}
-                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
+                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-all"
                     >
                         Logout
                     </button>

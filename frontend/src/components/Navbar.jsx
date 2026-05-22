@@ -46,40 +46,37 @@ export default function Navbar({ scrollToSection, homeRef, servicesRef, contactR
     };
 
     return (
-        <nav className="fixed w-full z-50 bg-black/80 backdrop-blur-md px-8 py-4 flex justify-between items-center text-white">
+        <nav className="fixed w-full z-50 bg-[#1E0B3E]/95 backdrop-blur-md shadow-lg px-8 py-4 flex justify-between items-center border-b border-[#3D1E7A]">
             <h1
-                className="text-2xl font-bold text-[#7C3AED] cursor-pointer"
+                className="text-2xl font-bold text-[#C4B5FD] cursor-pointer hover:text-white transition-colors"
                 onClick={() => navigate("/feed")}
             >
                 Axia Event Planner
             </h1>
 
-            <div className="flex gap-8 text-gray-300">
-                <button onClick={() => homeRef ? scrollToSection(homeRef) : navigate("/feed")}>Home</button>
-                <button onClick={() => servicesRef ? scrollToSection(servicesRef) : navigate("/feed")}>Services</button>
-                <button onClick={() => galleryRef ? scrollToSection(galleryRef) : navigate("/gallery")}>Gallery</button>
+            <div className="flex gap-8 text-[#C4B5FD]">
+                <button className="hover:text-white transition-colors" onClick={() => homeRef ? scrollToSection(homeRef) : navigate("/feed")}>Home</button>
+                <button className="hover:text-white transition-colors" onClick={() => servicesRef ? scrollToSection(servicesRef) : navigate("/feed")}>Services</button>
+                <button className="hover:text-white transition-colors" onClick={() => galleryRef ? scrollToSection(galleryRef) : navigate("/gallery")}>Gallery</button>
                 {isAuthenticated && (
-                    <button onClick={() => {
+                    <button className="hover:text-white transition-colors" onClick={() => {
                         const role = user?.role;
                         if (role === "admin") navigate("/admin");
                         else if (role === "serviceProvider") navigate("/organizer/dashboard");
                         else navigate("/user/dashboard");
                     }}>Profile</button>
                 )}
-                
-                <button onClick={() => contactRef ? scrollToSection(contactRef) : navigate("/feed")}>Contact</button>
+                <button className="hover:text-white transition-colors" onClick={() => contactRef ? scrollToSection(contactRef) : navigate("/feed")}>Contact</button>
             </div>
 
             <div className="flex items-center gap-4">
-                
-
                 {isAuthenticated ? (
                     <>
                         {/* Bell notification */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowNotifications(!showNotifications)}
-                                className="relative p-2 text-gray-400 hover:text-white transition"
+                                className="relative p-2 text-[#C4B5FD] hover:text-white transition-colors"
                             >
                                 🔔
                                 {unreadCount > 0 && (
@@ -90,31 +87,31 @@ export default function Navbar({ scrollToSection, homeRef, servicesRef, contactR
                             </button>
 
                             {showNotifications && (
-                                <div className="absolute right-0 top-10 w-80 bg-[#141428] border border-gray-800 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                                    <div className="flex justify-between items-center p-4 border-b border-gray-800">
-                                        <h3 className="font-black text-sm uppercase tracking-widest">Notifications</h3>
+                                <div className="absolute right-0 top-10 w-80 bg-[#2D1365] border border-[#3D1E7A] rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                    <div className="flex justify-between items-center p-4 border-b border-[#3D1E7A]">
+                                        <h3 className="font-black text-sm uppercase tracking-widest text-white">Notifications</h3>
                                         {unreadCount > 0 && (
-                                            <button onClick={markAllRead} className="text-xs text-[#7C3AED] font-bold hover:underline">
+                                            <button onClick={markAllRead} className="text-xs text-[#C4B5FD] font-bold hover:text-white transition-colors">
                                                 Mark all read
                                             </button>
                                         )}
                                     </div>
                                     <div className="max-h-80 overflow-y-auto">
                                         {notifications.length === 0 ? (
-                                            <div className="p-6 text-center text-gray-500 text-sm">No notifications yet</div>
+                                            <div className="p-6 text-center text-[#9B7FD4] text-sm">No notifications yet</div>
                                         ) : (
                                             notifications.map(n => (
                                                 <div
                                                     key={n._id}
-                                                    className={`p-4 border-b border-gray-800 hover:bg-[#1f1f35] transition cursor-pointer ${!n.read ? 'bg-[#7C3AED]/5 border-l-2 border-l-[#7C3AED]' : ''}`}
+                                                    className={`p-4 border-b border-[#3D1E7A] hover:bg-[#7C3AED]/20 transition cursor-pointer ${!n.read ? 'bg-[#7C3AED]/10 border-l-2 border-l-[#C4B5FD]' : ''}`}
                                                     onClick={() => {
                                                         if (n.link) navigate(n.link);
                                                         setShowNotifications(false);
                                                     }}
                                                 >
-                                                    <div className="font-bold text-sm">{n.title}</div>
-                                                    <div className="text-xs text-gray-400 mt-1">{n.message}</div>
-                                                    <div className="text-[10px] text-gray-600 mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
+                                                    <div className="font-bold text-sm text-white">{n.title}</div>
+                                                    <div className="text-xs text-[#9B7FD4] mt-1">{n.message}</div>
+                                                    <div className="text-[10px] text-[#6B4FA0] mt-1">{new Date(n.createdAt).toLocaleDateString()}</div>
                                                 </div>
                                             ))
                                         )}
@@ -123,10 +120,10 @@ export default function Navbar({ scrollToSection, homeRef, servicesRef, contactR
                             )}
                         </div>
 
-                        <span className="text-gray-300 font-medium">Hi, {name}</span>
+                        <span className="text-[#C4B5FD] font-medium">Hi, {name}</span>
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500/20 border border-red-500/50 text-red-500 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition ml-2"
+                            className="bg-red-500/20 border border-red-500/40 text-red-300 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition ml-2"
                         >
                             Logout
                         </button>
@@ -134,7 +131,7 @@ export default function Navbar({ scrollToSection, homeRef, servicesRef, contactR
                 ) : (
                     <button
                         onClick={() => navigate("/login")}
-                        className="bg-[#7C3AED] px-4 py-2 rounded-xl hover:bg-[#6D28D9] ml-2"
+                        className="bg-[#7C3AED] text-white px-4 py-2 rounded-xl hover:bg-[#6D28D9] transition ml-2 shadow-lg shadow-[#7C3AED]/30"
                     >
                         Login
                     </button>

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Login from "./pages/auth/login";
 import Register from "./pages/auth/register";
 import AdminDashboard from "./pages/admin/adminDashboard";
@@ -6,6 +7,7 @@ import AdminLayout from "./components/layout/AdminLayout";
 import AdminRequests from "./pages/admin/AdminRequests";
 import AdminUsers from "./pages/admin/AdminUsers";
 import EditProfile from "./pages/admin/EditProfile";
+import AdminReviews from "./pages/admin/AdminReviews";
 import OrganizerDashboard from "./pages/organizer/OrganizerDashboard";
 import Feed from "./pages/public/Feed";
 import ListingDetails from "./pages/public/ListingDetails";
@@ -17,6 +19,7 @@ import PaymentSuccess from "./pages/public/PaymentSuccess";
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" toastOptions={{ duration: 3500, style: { fontFamily: "inherit", borderRadius: "14px", fontSize: "14px" } }} />
       <Routes>
         <Route path="/" element={<Navigate to="/feed" replace />} />
         <Route path="/feed" element={<Feed />} />
@@ -33,6 +36,7 @@ export default function App() {
           <Route path="requests" element={<AdminRequests />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="edit-profile" element={<EditProfile />} />
+          <Route path="reviews" element={<AdminReviews />} />
         </Route>
         <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
 

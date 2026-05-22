@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import toast from "react-hot-toast";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchListings } from "../../store/listingSlice";
@@ -15,6 +16,7 @@ export default function Feed() {
   const [recError, setRecError] = useState(null);
   const [recSearch, setRecSearch] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
 
   const { isAuthenticated, user } = useSelector(state => state.auth);
   const { listings, loading } = useSelector(state => state.listings);
@@ -28,6 +30,7 @@ export default function Feed() {
   const [showPhotoUpload, setShowPhotoUpload] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoDesc, setPhotoDesc] = useState('');
+  const [photoUploadCategory, setPhotoUploadCategory] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Modal
@@ -106,16 +109,18 @@ export default function Feed() {
       const fd = new FormData();
       fd.append('photo', photoFile);
       fd.append('description', photoDesc);
+      fd.append('category', photoUploadCategory);
       const res = await axios.post('http://localhost:3000/api/photos', fd, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPhotos(prev => [res.data, ...prev]);
       setPhotoFile(null);
       setPhotoDesc('');
+      setPhotoUploadCategory('');
       setShowPhotoUpload(false);
-      alert('Photo uploaded!');
+      toast.success('Photo uploaded!');
     } catch (err) {
-      alert('Failed to upload photo');
+      toast.error('Failed to upload photo');
     } finally {
       setUploadingPhoto(false);
     }
@@ -123,19 +128,18 @@ export default function Feed() {
 
   const handleContactSubmit = async () => {
     if (!contactName.trim() || !contactEmail.trim() || !contactMessage.trim()) {
-      alert('Please fill all contact fields');
+      toast.error('Please fill all contact fields');
       return;
     }
     try {
       setSendingContact(true);
       await axios.post('http://localhost:3000/api/contact', { name: contactName, email: contactEmail, message: contactMessage });
-      alert('Message sent — we will reply shortly');
+      toast.success('Message sent — we will reply shortly');
       setContactName('');
       setContactEmail('');
       setContactMessage('');
     } catch (err) {
-      console.error('Contact send failed', err);
-      alert('Failed to send message');
+      toast.error('Failed to send message');
     } finally {
       setSendingContact(false);
     }
@@ -152,7 +156,7 @@ const fetchRecommendations = async (searchTerm = '') => {
         );
         setAiRecommendations(res.data || []);
     } catch (err) {
-        console.error("Failed to fetch recommendations", err);
+        // silent — recError state already shows UI feedback
         setRecError("Could not load recommendations.");
     } finally {
         setLoadingRecs(false);
@@ -212,14 +216,39 @@ const fetchRecommendations = async (searchTerm = '') => {
       {/* SERVICES */}
       <section ref={servicesRef} className="px-8 md:px-16 py-16 flex gap-6">
         <div className="w-3/4">
-          <center><h2 className="text-3xl font-bold mb-8">Our Services</h2></center>
+          <center><h2 className="text-3xl font-bold mb-6">Our Services</h2></center>
+
+          {/* Category filter chips */}
+          {(() => {
+            const cats = ['All', ...Array.from(new Set(listings.map(l => l.category).filter(Boolean))).sort()];
+            return (
+              <div className="flex gap-2 flex-wrap mb-6">
+                {cats.map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`px-4 py-2 rounded-full text-sm font-bold transition-all border ${
+                      categoryFilter === cat
+                        ? 'bg-[#7C3AED] text-white border-[#7C3AED] shadow-lg shadow-[#7C3AED]/30'
+                        : 'bg-white/5 text-gray-300 border-white/10 hover:border-[#7C3AED]/50 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+
           <div className="grid md:grid-cols-2 gap-6">
-            {listings.filter(l =>
-                !searchQuery ||
-                l.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                l.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                l.location?.toLowerCase().includes(searchQuery.toLowerCase())
-            ).map(listing => (
+            {listings.filter(l => {
+                const matchesSearch = !searchQuery ||
+                  l.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  l.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  l.location?.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesCategory = categoryFilter === 'All' || l.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            }).map(listing => (
               <div
                 key={listing._id}
                 className="bg-[#141428] rounded-2xl p-5 hover:scale-[1.02] transition cursor-pointer"
@@ -242,7 +271,15 @@ const fetchRecommendations = async (searchTerm = '') => {
                 </button>
               </div>
             ))}
-            {listings.length === 0 && !loading && <p className="text-gray-500">No services available yet.</p>}
+            {listings.filter(l => {
+              const matchesSearch = !searchQuery || l.title?.toLowerCase().includes(searchQuery.toLowerCase()) || l.category?.toLowerCase().includes(searchQuery.toLowerCase()) || l.location?.toLowerCase().includes(searchQuery.toLowerCase());
+              const matchesCategory = categoryFilter === 'All' || l.category === categoryFilter;
+              return matchesSearch && matchesCategory;
+            }).length === 0 && !loading && (
+              <div className="col-span-2 text-center py-12 text-gray-500">
+                No services found{categoryFilter !== 'All' ? ` in "${categoryFilter}"` : ''}{searchQuery ? ` for "${searchQuery}"` : ''}.
+              </div>
+            )}
             {loading && <p className="text-gray-400">Loading services...</p>}
           </div>
         </div>
@@ -306,7 +343,7 @@ const fetchRecommendations = async (searchTerm = '') => {
       <section ref={galleryRef} className="px-8 md:px-16 py-16">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold">Gallery</h2>
-          {isAuthenticated && (
+          {user?.role === 'serviceProvider' && (
             <button
               onClick={() => setShowPhotoUpload(!showPhotoUpload)}
               className="bg-[#7C3AED] px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#6D28D9] transition"
@@ -316,28 +353,53 @@ const fetchRecommendations = async (searchTerm = '') => {
           )}
         </div>
 
-        {showPhotoUpload && (
-          <form onSubmit={handlePhotoUpload} className="bg-[#141428] p-5 rounded-2xl border border-gray-800 mb-6 max-w-md">
-            <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-4">Upload a Photo</h3>
+        {showPhotoUpload && user?.role === 'serviceProvider' && (
+          <form onSubmit={handlePhotoUpload} className="bg-[#141428] p-6 rounded-2xl border border-gray-800 mb-6 max-w-md space-y-3">
+            <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-2">Upload a Photo</h3>
+
+            {/* Category */}
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Category <span className="text-red-400">*</span></label>
+              <input
+                list="photo-categories"
+                required
+                value={photoUploadCategory}
+                onChange={e => setPhotoUploadCategory(e.target.value)}
+                placeholder="e.g. Weddings, Birthday, Corporate..."
+                className="w-full bg-[#1f1f35] text-white p-3 rounded-xl border border-gray-700 focus:ring-2 focus:ring-[#7C3AED] outline-none placeholder-gray-600"
+              />
+              <datalist id="photo-categories">
+                {PHOTO_CATEGORIES.filter(c => c !== 'All').map(c => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <p className="text-[10px] text-gray-600 mt-1">Pick a suggestion or type your own category.</p>
+            </div>
+
+            {/* File */}
             <input
               type="file"
               accept="image/*"
+              required
               onChange={e => setPhotoFile(e.target.files[0])}
-              className="w-full mb-3 text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#7C3AED]/20 file:text-[#A78BFA] hover:file:bg-[#7C3AED]/30"
+              className="w-full text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#7C3AED]/20 file:text-[#A78BFA] hover:file:bg-[#7C3AED]/30"
             />
+
+            {/* Description */}
             <input
               type="text"
               value={photoDesc}
               onChange={e => setPhotoDesc(e.target.value)}
-              placeholder="Description (optional)"
-              className="w-full mb-3 p-3 rounded-xl bg-[#1f1f35] text-white placeholder-gray-600"
+              placeholder="Caption / description (optional)"
+              className="w-full p-3 rounded-xl bg-[#1f1f35] text-white placeholder-gray-600 border border-gray-700 focus:ring-2 focus:ring-[#7C3AED] outline-none"
             />
+
             <button
               type="submit"
-              disabled={uploadingPhoto || !photoFile}
-              className="w-full bg-[#7C3AED] py-2 rounded-xl font-black uppercase tracking-widest hover:bg-[#6D28D9] transition disabled:opacity-50"
+              disabled={uploadingPhoto || !photoFile || !photoUploadCategory}
+              className="w-full bg-[#7C3AED] py-3 rounded-xl font-black uppercase tracking-widest hover:bg-[#6D28D9] transition disabled:opacity-50"
             >
-              {uploadingPhoto ? 'Uploading...' : 'Upload'}
+              {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
             </button>
           </form>
         )}
@@ -347,7 +409,7 @@ const fetchRecommendations = async (searchTerm = '') => {
             <button
               key={c}
               onClick={() => setPhotoCategory(c)}
-              className={`px-4 py-2 rounded-full font-semibold ${photoCategory === c ? "bg-[#7C3AED] text-white" : "bg-[#1f1f35] text-gray-300"}`}
+              className={`px-4 py-2 rounded-full font-semibold transition-all ${photoCategory === c ? "bg-[#7C3AED] text-white" : "bg-[#1f1f35] text-gray-300 hover:bg-[#7C3AED]/20"}`}
             >
               {c}
             </button>
@@ -358,15 +420,41 @@ const fetchRecommendations = async (searchTerm = '') => {
           <p className="text-gray-400">Loading photos...</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {photos.filter(p => photoCategory === "All" || (p.event?.category || "").toLowerCase() === photoCategory.toLowerCase()).length === 0 && (
+            {photos.filter(p => {
+              const cat = (p.category || p.event?.category || "").toLowerCase();
+              return photoCategory === "All" || cat === photoCategory.toLowerCase();
+            }).length === 0 && (
               <div className="text-gray-400 col-span-full">No photos for {photoCategory}.</div>
             )}
-            {photos.filter(p => photoCategory === "All" || (p.event?.category || "").toLowerCase() === photoCategory.toLowerCase()).map((p) => (
-              <div key={p._id} className="bg-[#141428] rounded-xl overflow-hidden border border-gray-800">
+            {photos.filter(p => {
+              const cat = (p.category || p.event?.category || "").toLowerCase();
+              return photoCategory === "All" || cat === photoCategory.toLowerCase();
+            }).map((p) => (
+              <div key={p._id} className="bg-[#141428] rounded-xl overflow-hidden border border-gray-800 group relative">
                 <img src={p.url} alt={p.description || "photo"} className="w-full h-44 object-cover" />
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm('Delete this photo?')) return;
+                      try {
+                        const token = localStorage.getItem('token');
+                        await axios.delete(`http://localhost:3000/api/photos/${p._id}`, {
+                          headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setPhotos(prev => prev.filter(x => x._id !== p._id));
+                      } catch { toast.error('Failed to delete photo'); }
+                    }}
+                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                    title="Delete photo"
+                  >
+                    ✕
+                  </button>
+                )}
                 <div className="p-3">
-                  <div className="text-sm text-gray-300 font-semibold">{p.event?.title || p.description || "Posted Photo"}</div>
-                  <div className="text-xs text-gray-500 mt-1">{p.event?.category || ""}</div>
+                  <div className="text-sm text-gray-300 font-semibold">{p.description || p.event?.title || "Posted Photo"}</div>
+                  {(p.category || p.event?.category) && (
+                    <div className="text-xs text-[#A78BFA] mt-1 font-bold uppercase tracking-widest">{p.category || p.event?.category}</div>
+                  )}
                 </div>
               </div>
             ))}

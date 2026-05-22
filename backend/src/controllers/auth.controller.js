@@ -113,13 +113,14 @@ exports.updateProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const { firstName, lastName, location, email, assets, password, phone } = req.body;
+    const { firstName, lastName, location, email, assets, password, phone, coordinates } = req.body;
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (location) user.location = location;
     if (email) user.email = email;
     if (assets) user.assets = assets;
     if (phone !== undefined) user.phone = phone;
+    if (coordinates) user.coordinates = coordinates;
     if (password) {
       user.passwordHash = await bcrypt.hash(password, 10);
     }
@@ -133,6 +134,7 @@ exports.updateProfile = async (req, res) => {
       email: user.email,
       role: user.role,
       location: user.location,
+      coordinates: user.coordinates,
       phone: user.phone
     });
   } catch (err) {
@@ -152,6 +154,7 @@ exports.getProfile = async (req, res) => {
       email: user.email,
       role: user.role,
       location: user.location,
+      coordinates: user.coordinates,
       phone: user.phone,
       unavailableDates: user.unavailableDates || [],
       assets: user.assets

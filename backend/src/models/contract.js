@@ -2,14 +2,12 @@ const mongoose = require("mongoose");
 
 const ContractSchema = new mongoose.Schema(
   {
-    // linked request
     serviceRequest: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ServiceRequest",
       required: true
     },
 
-    // parties
     provider: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -21,7 +19,6 @@ const ContractSchema = new mongoose.Schema(
       required: true
     },
 
-    // service details snapshot
     listing: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Listing"
@@ -31,6 +28,9 @@ const ContractSchema = new mongoose.Schema(
     serviceLocation: { type: String },
     agreedPrice: { type: Number },
     eventDate: { type: String },
+
+    // form answers from participant
+    formAnswers: [{ label: { type: String }, value: { type: String } }],
 
     // contract terms
     terms: { type: String },

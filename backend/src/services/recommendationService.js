@@ -19,6 +19,16 @@ const getDistance = (cityA, cityB) => {
     return cityDistances[a]?.[b] ?? cityDistances[b]?.[a] ?? 9999;
 };
 
+const haversine = (coordsA, coordsB) => {
+    const R = 6371;
+    const dLat = (coordsB.lat - coordsA.lat) * Math.PI / 180;
+    const dLng = (coordsB.lng - coordsA.lng) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(coordsA.lat * Math.PI / 180) * Math.cos(coordsB.lat * Math.PI / 180) *
+        Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
 const filterBySearch = (listings, searchTerm) => {
     if (!searchTerm) return listings;
     const filtered = listings.filter(l =>
@@ -28,19 +38,22 @@ const filterBySearch = (listings, searchTerm) => {
     return filtered.length > 0 ? filtered : listings;
 };
 
-const splitByLocation = (listings, userLocation) => {
-    if (!userLocation) return { sameLocation: [], otherLocation: listings };
+const splitByLocation = (listings, userLocation, userCoords) => {
+    if (!userLocation && !userCoords) return { sameLocation: [], otherLocation: listings };
 
-    const sameLocation = listings.filter(l =>
-        (l.location || "").toLowerCase().includes(userLocation) ||
-        userLocation.includes((l.location || "").toLowerCase())
-    );
+    const sameLocation = listings.filter(l => {
+        const loc = (l.location || "").toLowerCase();
+        return loc.includes(userLocation) || userLocation.includes(loc);
+    });
+
     const otherLocation = listings
         .filter(l => !sameLocation.includes(l))
-        .sort((a, b) =>
-            getDistance(userLocation, a.location) -
-            getDistance(userLocation, b.location)
-        );
+        .sort((a, b) => {
+            if (userCoords && a.coordinates && b.coordinates) {
+                return haversine(userCoords, a.coordinates) - haversine(userCoords, b.coordinates);
+            }
+            return getDistance(userLocation, a.location) - getDistance(userLocation, b.location);
+        });
 
     return { sameLocation, otherLocation };
 };

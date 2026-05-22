@@ -5,6 +5,7 @@ const isAuthenticated = require("../middleware/isAuthenticated");
 const upload = require("../middleware/upload");
 
 router.get("/", photoController.getPhotos);
-router.post("/", isAuthenticated, upload.single("photo"), photoController.uploadPhoto); // 👈 add this
+router.post("/", isAuthenticated, upload.single("photo"), photoController.uploadPhoto);
+router.delete("/:id", isAuthenticated, photoController.deletePhoto);
 
 module.exports = router;

@@ -20,12 +20,13 @@ exports.getRecommendations = async (req, res) => {
         ];
 
         const userLocation = (user.location || "").toLowerCase().trim();
+        const userCoords = user.coordinates?.lat && user.coordinates?.lng ? user.coordinates : null;
         const searchTerm = (search || "").toLowerCase().trim();
         const topN = searchTerm ? 5 : 3;
 
         // Filter by search term, then split by location
         const filtered = filterBySearch(allListings, searchTerm);
-        const { sameLocation, otherLocation } = splitByLocation(filtered, userLocation);
+        const { sameLocation, otherLocation } = splitByLocation(filtered, userLocation, userCoords);
 
         // Same-city listings are always included first
         const guaranteed = sameLocation.slice(0, topN);

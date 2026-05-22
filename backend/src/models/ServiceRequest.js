@@ -49,12 +49,19 @@ const serviceRequestSchema = new mongoose.Schema({
     ref: "Contract",
     default: null
 },
-   formAnswers: [
-    {
-        label: { type: String },
-        value: { type: String }
-    }
-]
+    formAnswers: [
+        {
+            label: { type: String },
+            value: { type: String }
+        }
+    ],
+    messages: [
+        {
+            senderRole: { type: String, enum: ["provider", "participant"], required: true },
+            text: { type: String, required: true },
+            sentAt: { type: Date, default: Date.now }
+        }
+    ]
 }, { timestamps: true });
 
 module.exports = mongoose.model("ServiceRequest", serviceRequestSchema);

@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
 const ServiceRequest = require("../models/ServiceRequest");
+const Event = require("../models/event");
 const sendMail = require("../services/mail");
 const notify = require("../services/notify");
 
@@ -177,7 +178,25 @@ exports.getAnalytics = async (req, res) => {
       }
     ]);
 
-    res.json({ totalUsers, totalListings, listingsPerMonth, topOrganizers });
+    const totalEvents = await Event.countDocuments();
+
+    // Platform income from accepted requests with a final price
+    const incomeData = await ServiceRequest.aggregate([
+      { $match: { status: "accepted", finalPrice: { $exists: true, $gt: 0 } } },
+      { $group: { _id: null, total: { $sum: "$finalPrice" } } }
+    ]);
+    const platformIncome = incomeData[0]?.total || 0;
+
+    // Accepted / declined counts per provider
+    const providerRequestStats = await ServiceRequest.aggregate([
+      { $match: { status: { $in: ["accepted", "declined"] } } },
+      { $group: { _id: { provider: "$provider", status: "$status" }, count: { $sum: 1 } } },
+      { $lookup: { from: "users", localField: "_id.provider", foreignField: "_id", as: "providerInfo" } },
+      { $unwind: "$providerInfo" },
+      { $project: { providerName: { $concat: ["$providerInfo.firstName", " ", "$providerInfo.lastName"] }, status: "$_id.status", count: 1 } }
+    ]);
+
+    res.json({ totalUsers, totalEvents, totalListings, listingsPerMonth, topOrganizers, platformIncome, providerRequestStats });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

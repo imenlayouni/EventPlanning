@@ -13,9 +13,12 @@ exports.getPhotos = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    // if category filter passed, filter by populated event.category
+    // filter by photo.category first, fall back to linked event.category
     const filtered = category
-      ? photos.filter(p => (p.event?.category || "").toLowerCase() === String(category).toLowerCase())
+      ? photos.filter(p => {
+          const cat = (p.category || p.event?.category || "").toLowerCase();
+          return cat === String(category).toLowerCase();
+        })
       : photos;
 
     res.json(filtered);
@@ -26,6 +29,9 @@ exports.getPhotos = async (req, res) => {
 };
 exports.uploadPhoto = async (req, res) => {
   try {
+    if (req.user?.role !== 'serviceProvider') {
+      return res.status(403).json({ message: "Only service providers can upload photos" });
+    }
     if (!req.file) return res.status(400).json({ message: "No photo uploaded" });
 
     const { description, category } = req.body;
@@ -35,6 +41,7 @@ exports.uploadPhoto = async (req, res) => {
     const photo = await Photo.create({
       url,
       description: description || '',
+      category: category || '',
       type: "EVENT",
       isDeleted: false
     });
@@ -43,5 +50,19 @@ exports.uploadPhoto = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to upload photo" });
+  }
+};
+
+exports.deletePhoto = async (req, res) => {
+  try {
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({ message: "Only admins can delete photos" });
+    }
+    const photo = await Photo.findByIdAndUpdate(req.params.id, { isDeleted: true }, { new: true });
+    if (!photo) return res.status(404).json({ message: "Photo not found" });
+    res.json({ message: "Photo deleted" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete photo" });
   }
 };

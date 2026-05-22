@@ -1,5 +1,6 @@
 const express = require("express");
 const { validateAccount, getAllUsers, updateUserRole, updateUserStatus, getAnalytics, rejectAccount, approveListing, rejectListing, getPendingRequests, getServiceRequests, updateServiceRequestStatus } = require("../controllers/admin");
+const { adminListReviews, adminDeleteReview } = require("../controllers/review.controller");
 const requireAuth = require("../middleware/isAuthenticated");
 const requireRole = require("../middleware/role");
 
@@ -27,5 +28,9 @@ router.patch("/service-requests/:id/status", updateServiceRequestStatus);
 
 //analytics
 router.get("/analytics", getAnalytics);
+
+// Reviews management
+router.get("/reviews", adminListReviews);
+router.delete("/reviews/:id", adminDeleteReview);
 
 module.exports = router;
